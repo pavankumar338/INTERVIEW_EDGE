@@ -1,7 +1,7 @@
 "use client";
 
 import { InterviewRoom } from "@/components/interview-room";
-import { Mic, Shield, Zap, Star, ArrowRight, PlusCircle } from "lucide-react";
+import { Mic, Shield, Zap, Star, ArrowRight, PlusCircle, Target, Activity, RefreshCw } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -28,9 +28,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]">
-              IE
+              SP
             </div>
-            <span className="font-bold tracking-tight text-xl">INTERVIEW<span className="text-blue-500">EDGE</span></span>
+            <span className="font-bold tracking-tight text-xl">Speed<span className="text-blue-500">Prep AI</span></span>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm font-medium">
             <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
@@ -60,13 +60,13 @@ export default function Home() {
         <section className="max-w-7xl mx-auto flex flex-col items-center text-center mb-32">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-semibold mb-6 animate-fade-in">
             <Star className="w-3 h-3 fill-current" />
-            <span>Next-Gen Career Preparation</span>
+            <span>Company-Specific Technical Practice</span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight max-w-4xl mb-8 leading-[1.1]">
-            Master Your Next Interview with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-500">Voice AI</span>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight max-w-5xl mb-8 leading-[1.1]">
+            Stop Guessing. Start Preparing for <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-500">Specific Companies.</span>
           </h1>
-          <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mb-12 leading-relaxed">
-            Revolutionize your career preparation with our cutting-edge AI platform. Build confidence, refine your communication, and ace your next big opportunity.
+          <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mb-12 leading-relaxed">
+            Generic question sets are a waste of time. SpeedPrep AI analyzes company-specific interview patterns, historical question trends, and role requirements to generate highly targeted quizzes and simulations tailored to your exact skill level.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 animate-fade-in" style={{ animationDelay: '0.2s' }}>
@@ -74,14 +74,14 @@ export default function Home() {
               href="/login"
               className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition-all shadow-xl shadow-blue-500/20 flex items-center gap-2 w-full sm:w-auto justify-center"
             >
-              Get Started Now
+              Start Targeted Practice
               <ArrowRight className="w-5 h-5" />
             </Link>
             <a
               href="#features"
               className="px-8 py-4 rounded-2xl border border-border bg-secondary/50 font-semibold hover:bg-secondary transition-all w-full sm:w-auto text-center"
             >
-              View Features
+              Explore the Technology
             </a>
           </div>
         </section>
@@ -89,32 +89,32 @@ export default function Home() {
         {/* Feature Grid */}
         <section id="features" className="max-w-7xl mx-auto mb-32 scroll-mt-24">
           <div className="text-center mb-16 space-y-4">
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Powerful Features</h2>
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Data-Driven Preparation</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to transform your interview performance from average to exceptional.
+              We leverage machine learning to provide a highly structured and personalized learning environment.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-8 rounded-3xl bg-card border border-border hover:border-blue-500/30 transition-all group shadow-sm">
               <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-500 mb-6 group-hover:scale-110 transition-transform">
-                <Mic className="w-6 h-6" />
+                <Target className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Natural Conversation</h3>
-              <p className="text-muted-foreground leading-relaxed">Speak naturally as you would in a real interview. Our AI understands context and follows up on your points.</p>
+              <h3 className="text-xl font-semibold mb-3">Hyper-Targeted Content</h3>
+              <p className="text-muted-foreground leading-relaxed">Our AI curates practice questions and challenges based precisely on your selected company, role, and current experience level.</p>
             </div>
             <div className="p-8 rounded-3xl bg-card border border-border hover:border-blue-500/30 transition-all group shadow-sm">
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-500 mb-6 group-hover:scale-110 transition-transform">
-                <Zap className="w-6 h-6" />
+                <Activity className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Real-time Feedback</h3>
-              <p className="text-muted-foreground leading-relaxed">Receive instant analysis of your tone, clarity, and content quality to help you improve on the fly.</p>
+              <h3 className="text-xl font-semibold mb-3">Performance Analytics</h3>
+              <p className="text-muted-foreground leading-relaxed">Instantly identify your strengths and uncover weak areas. The system evaluates every answer to pinpoint knowledge gaps.</p>
             </div>
             <div className="p-8 rounded-3xl bg-card border border-border hover:border-blue-500/30 transition-all group shadow-sm">
               <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-500 mb-6 group-hover:scale-110 transition-transform">
-                <Shield className="w-6 h-6" />
+                <RefreshCw className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Safe Learning</h3>
-              <p className="text-muted-foreground leading-relaxed">Practice in a low-stakes environment. Make mistakes, learn, and iterate until you reach perfection.</p>
+              <h3 className="text-xl font-semibold mb-3">Adaptive Difficulty</h3>
+              <p className="text-muted-foreground leading-relaxed">As you improve, the AI automatically raises the stakes, introducing more complex questions and edge-cases to keep your prep efficient.</p>
             </div>
           </div>
         </section>
@@ -122,16 +122,16 @@ export default function Home() {
         {/* Testimonials */}
         <section className="max-w-7xl mx-auto mb-32">
           <div className="text-center mb-16 space-y-4">
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Trusted by Professionals</h2>
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Trusted by Candidates</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Join thousands of successful candidates who used Interview Edge to land their dream jobs.
+              See what engineers are saying about their focused interview preparation with SpeedPrep AI.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { name: "Sarah Johnson", role: "Software Engineer at Google", text: "The AI feedback was spot on. It helped me realize I was talking too fast during technical explanations." },
-              { name: "Michael Chen", role: "Product Manager at Meta", text: "Incredibly realistic. The follow-up questions felt just like a real panel interview." },
-              { name: "Elena Rodriguez", role: "Marketing Director", text: "Finally, a tool that helps with the behavioral part of interviews. Worth every penny." }
+              { name: "Sarah Johnson", role: "L4 Engineer at Google", text: "SpeedPrep analyzed the exact patterns for Google's engineering loops. I felt over-prepared for the actual system design interview!" },
+              { name: "Michael Chen", role: "Frontend Dev at Meta", text: "I stopped wasting time on generic React questions. The adaptive quizzes helped me bridge my specific knowledge gaps." },
+              { name: "Elena Rodriguez", role: "Junior SDE", text: "Tracking my progress over time gave me the confidence I needed. The company-specific role simulation is a game-changer." }
             ].map((t, i) => (
               <div key={i} className="p-8 rounded-3xl bg-secondary/30 border border-border flex flex-col justify-between">
                 <p className="italic text-lg mb-8">"{t.text}"</p>
@@ -153,13 +153,13 @@ export default function Home() {
         <section id="faq" className="max-w-3xl mx-auto mb-32 scroll-mt-24">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight">FAQs</h2>
-            <p className="text-muted-foreground">Everything you need to know about Interview Edge.</p>
+            <p className="text-muted-foreground">Everything you need to know about SpeedPrep AI.</p>
           </div>
           <div className="space-y-4">
             {[
-              { q: "How does the Voice AI work?", a: "Our AI uses advanced natural language processing to understand your speech in real-time and provide contextually relevant responses." },
-              { q: "Is my data private?", a: "Yes, all your sessions are private and encrypted. We never share your recordings with third parties." },
-              { q: "Can I practice for specific companies?", a: "Yes! Our Premium plan allows you to select specific company profiles and seniority levels for targeted practice." }
+              { q: "How does SpeedPrep AI generate company-specific questions?", a: "By analyzing data from historical technical interviews, public company engineering blogs, and role requirements across top organizations, our ML engine maps out definitive topic patterns." },
+              { q: "Will the difficulty match my actual experience level?", a: "Yes. Whether you're a Fresher or a Senior Engineer, the platform asks you for your experience level and automatically adapts the depth of system design, architecture, and coding questions." },
+              { q: "Can I track my progress over time?", a: "Absolutely. Our platform keeps a detailed history of your mock interviews and quizzes, highlighting your evolving strengths and areas that need immediate attention." }
             ].map((item, i) => (
               <details key={i} className="group bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
                 <summary className="p-6 cursor-pointer font-medium flex items-center justify-between list-none">
@@ -177,17 +177,17 @@ export default function Home() {
         {/* Skills Enhancement Section */}
         <section className="max-w-7xl mx-auto mb-32">
           <div className="text-center mb-16 space-y-4">
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Master Every Skill</h2>
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight">A Complete Preparation Engine</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Our AI doesn't just listen; it analyzes every facet of your performance to build a 360° profile of your interview readiness.
+              Our system continuously updates practice recommendations so you stay perfectly aligned with the latest hiring trends.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: "Communication", desc: "Refine your body language, tone, and pacing to ensure your message lands with impact.", icon: "💬" },
-              { title: "Vocabulary", desc: "Expand your professional lexicon and eliminate filler words for more sophisticated responses.", icon: "📚" },
-              { title: "Speaking", desc: "Improve clarity, pronunciation, and confidence in your spoken English and delivery.", icon: "🗣️" },
-              { title: "Technical Skills", desc: "Practice explaining complex concepts simply and effectively for technical rounds.", icon: "⚙️" }
+              { title: "Skill Analysis", desc: "Instantly detect weak points across algorithms, systems, and behavioral patterns.", icon: "📊" },
+              { title: "Dynamic Quizzes", desc: "Tackle coding challenges specifically weighted toward a company's past questions.", icon: "💻" },
+              { title: "Live Scenarios", desc: "Simulate high-pressure interview loops with a realistic AI interviewer.", icon: "🎙️" },
+              { title: "Progress Tracking", desc: "Follow a structured, measurable path from practice to your final offer.", icon: "📈" }
             ].map((skill, i) => (
               <div key={i} className="p-8 rounded-3xl bg-card border border-border hover:shadow-lg transition-all text-center">
                 <div className="text-4xl mb-6">{skill.icon}</div>
@@ -195,79 +195,6 @@ export default function Home() {
                 <p className="text-muted-foreground text-sm leading-relaxed">{skill.desc}</p>
               </div>
             ))}
-          </div>
-        </section>
-
-        {/* Industry Specialization Section */}
-        <section className="max-w-7xl mx-auto mb-32 relative group">
-          {/* Background Decorative Layer */}
-          <div className="absolute inset-0 bg-blue-600/5 rounded-[64px] blur-3xl -z-10 group-hover:bg-blue-600/10 transition-colors duration-700" />
-          <div className="absolute inset-0 border border-border/50 rounded-[64px] bg-card/20 backdrop-blur-3xl overflow-hidden shadow-2xl">
-            <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-[grid-line_1px_rgba(0,0,0,0.1)] dark:bg-[grid-line_1px_rgba(255,255,255,0.1)] [mask-image:radial-gradient(ellipse_at_center,black,transparent)]" style={{ backgroundSize: '40px 40px' }} />
-          </div>
-
-          <div className="relative z-10 px-8 py-24 flex flex-col items-center">
-            <div className="max-w-3xl text-center mb-20 space-y-6">
-              <h2 className="text-4xl md:text-6xl font-bold tracking-tight">Tailored for Every Industry</h2>
-              <p className="text-muted-foreground text-lg md:text-xl leading-relaxed">
-                Whether you're breaking into tech or a seasoned healthcare professional, our AI assistant is trained on industry-specific protocols and terminologies.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
-              {[
-                {
-                  name: "Healthcare",
-                  desc: "Medical ethics, clinical reasoning, and patient empathy scenarios designed for modern medicine.",
-                  icon: "🏥",
-                  color: "from-emerald-500/20 to-teal-500/20",
-                  iconColor: "text-emerald-500"
-                },
-                {
-                  name: "Software",
-                  desc: "System design, algorithmic thinking, and dev-culture fit for top-tier engineering roles.",
-                  icon: "💻",
-                  color: "from-blue-500/20 to-indigo-500/20",
-                  iconColor: "text-blue-500"
-                },
-                {
-                  name: "Hardware",
-                  desc: "Manufacturing processes, VLSI, and engineering fundamentals for hardware pioneers.",
-                  icon: "🔌",
-                  color: "from-orange-500/20 to-amber-500/20",
-                  iconColor: "text-orange-500"
-                }
-              ].map((role, i) => (
-                <motion.div
-                  key={i}
-                  whileHover={{ y: -10 }}
-                  className="group/card relative p-10 rounded-[40px] bg-background border border-border/50 shadow-xl hover:border-blue-500/30 transition-all duration-500 flex flex-col h-full items-start"
-                >
-                  <div className={cn(
-                    "w-20 h-20 rounded-3xl bg-gradient-to-br flex items-center justify-center text-4xl mb-8 group-hover/card:scale-110 transition-transform duration-500",
-                    role.color
-                  )}>
-                    {role.icon}
-                  </div>
-                  <h4 className="text-2xl font-bold mb-4">{role.name}</h4>
-                  <p className="text-muted-foreground leading-relaxed mb-8 flex-1">
-                    {role.desc}
-                  </p>
-                  <div className="w-full pt-6 border-t border-border/50">
-                    <span className="text-sm font-semibold flex items-center gap-2 group-hover/card:text-blue-500 transition-colors">
-                      Learn More <ArrowRight className="w-4 h-4 group-hover/card:translate-x-1 transition-transform" />
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="mt-20">
-              <Link href="/login" className="inline-flex items-center gap-3 px-10 py-5 rounded-[24px] bg-primary text-primary-foreground font-bold hover:scale-105 transition-all shadow-2xl shadow-primary/20">
-                Choose Your Path
-                <ArrowRight className="w-6 h-6" />
-              </Link>
-            </div>
           </div>
         </section>
       </main>
@@ -280,12 +207,12 @@ export default function Home() {
             <div className="md:col-span-5 space-y-8">
               <Link href="/" className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]">
-                  IE
+                  SP
                 </div>
-                <span className="font-bold tracking-tighter text-2xl uppercase">Interview<span className="text-blue-500">Edge</span></span>
+                <span className="font-bold tracking-tighter text-2xl uppercase">Speed<span className="text-blue-500">Prep AI</span></span>
               </Link>
               <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
-                We're on a mission to democratize elite-level interview coaching through the power of Voice AI, helping everyone land the role they deserve.
+                We're on a mission to bring data-driven efficiency to technical interview preparation, helping candidates crack company-specific patterns and land their dream jobs.
               </p>
               <div className="flex items-center gap-4">
                 {['𝕏', 'in', 'ig', 'fb'].map((social) => (
@@ -327,7 +254,7 @@ export default function Home() {
 
           <div className="pt-12 border-t border-border flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-6 text-sm text-muted-foreground font-medium">
-              <span>© 2024 Interview Edge AI.</span>
+              <span>© 2024 SpeedPrep AI.</span>
               <div className="flex items-center gap-6">
                 <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
                 <a href="#" className="hover:text-foreground transition-colors">Terms</a>
