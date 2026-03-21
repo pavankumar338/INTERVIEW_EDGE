@@ -22,6 +22,7 @@ import {
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { InterviewRoom } from "@/components/interview-room";
@@ -35,11 +36,110 @@ const INTERESTS = [
     { id: 'hardware', label: 'Hardware & Core Eng', icon: Cpu, color: 'text-orange-500', bg: 'bg-orange-500/10', roles: ['Embedded Systems', 'VLSI Design', 'Robotics Eng', 'Firmware Eng'] },
 ];
 
+function GenerateQuestionsTab() {
+    const [company, setCompany] = useState("");
+    const [role, setRole] = useState("");
+    const [experience, setExperience] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const router = useRouter();
+
+    const handleGenerate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+
+        try {
+            const res = await fetch("/api/generate-questions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ company, role, experience }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to generate questions");
+            
+            sessionStorage.setItem("current_assessment", JSON.stringify(data));
+            sessionStorage.setItem("assessment_meta", JSON.stringify({ company, role, experience }));
+            
+            router.push("/assessment");
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-8 max-w-3xl border border-border bg-card p-10 rounded-3xl mx-auto mt-8 shadow-xl animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <div className="space-y-4 text-center pb-6 border-b border-border">
+                <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Brain className="w-8 h-8" />
+                </div>
+                <h1 className="text-3xl font-bold tracking-tight">Interactive Assessment</h1>
+                <p className="text-muted-foreground text-lg">Generate a custom multi-round mock interview tailored precisely to your target company.</p>
+            </div>
+
+            <form onSubmit={handleGenerate} className="space-y-6 pt-4">
+                <div className="space-y-2">
+                    <label className="text-sm font-bold ml-1 text-muted-foreground uppercase tracking-wider">Target Company</label>
+                    <input 
+                        required
+                        value={company} onChange={(e) => setCompany(e.target.value)}
+                        className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-4 text-base outline-none focus:border-blue-500 focus:bg-background transition-all"
+                        placeholder="e.g. Google, Stripe, Meta"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-bold ml-1 text-muted-foreground uppercase tracking-wider">Target Role</label>
+                    <input 
+                        required
+                        value={role} onChange={(e) => setRole(e.target.value)}
+                        className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-4 text-base outline-none focus:border-blue-500 focus:bg-background transition-all"
+                        placeholder="e.g. Frontend Developer, Data Engineer"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-bold ml-1 text-muted-foreground uppercase tracking-wider">Experience Level</label>
+                    <select 
+                        required
+                        value={experience} onChange={(e) => setExperience(e.target.value)}
+                        className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-4 text-base outline-none focus:border-blue-500 focus:bg-background transition-all appearance-none"
+                    >
+                        <option value="" disabled>Select experience level...</option>
+                        <option value="Entry-level">Entry-level</option>
+                        <option value="Mid-level">Mid-level</option>
+                        <option value="Senior">Senior</option>
+                        <option value="Lead/Manager">Lead/Manager</option>
+                    </select>
+                </div>
+                
+                {error && <div className="p-4 rounded-xl bg-red-500/10 text-red-500 font-bold border border-red-500/20">{error}</div>}
+
+                <button 
+                    type="submit" 
+                    disabled={loading || !company || !role || !experience}
+                    className="w-full mt-8 bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 px-4 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-3 shadow-xl shadow-blue-500/20 text-lg hover:scale-[1.02]"
+                >
+                    {loading ? (
+                        <>
+                            <span className="animate-spin w-5 h-5 border-2 border-white/30 border-t-transparent rounded-full" />
+                            Fetching Technical Requirements...
+                        </>
+                    ) : (
+                        "Start Mock Interview Challenge"
+                    )}
+                </button>
+            </form>
+        </div>
+    );
+}
+
 export default function DashboardPage() {
     const [user, setUser] = useState<any>(null);
     const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
-    const [view, setView] = useState<'overview' | 'history' | 'performance'>('overview');
+    const [view, setView] = useState<'overview' | 'generate-questions' | 'history' | 'performance'>('overview');
     const [history, setHistory] = useState<any[]>([]);
     const [selectedHistorySession, setSelectedHistorySession] = useState<any | null>(null);
     const [resume, setResume] = useState<any>(null);
@@ -99,6 +199,7 @@ export default function DashboardPage() {
                 <nav className="flex-1 px-4 space-y-2">
                     {[
                         { id: 'overview', icon: LayoutDashboard, label: "Overview" },
+                        { id: 'generate-questions', icon: MessageSquare, label: "Generate Questions" },
                         { id: 'history', icon: History, label: "Session History" },
                         { id: 'performance', icon: Star, label: "Performance" },
                         { id: 'profile', icon: User, label: "Profile" },
@@ -461,6 +562,8 @@ export default function DashboardPage() {
                                 )}
                             </div>
                         </div>
+                    ) : view === 'generate-questions' ? (
+                        <GenerateQuestionsTab />
                     ) : (
                         <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
                             <Star className="w-12 h-12 text-blue-500/20" />

@@ -181,3 +181,35 @@ export async function getSessionHistory() {
     if (error) throw error;
     return data;
 }
+
+export async function saveQuizScore(role: string, industry: string, score: number) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) throw new Error("Unauthorized");
+
+    const summary = score >= 80 ? "Excellent performance on the AI-generated quiz." : "Review required areas based on the AI-generated quiz.";
+
+    const { error } = await supabase
+        .from("interview_sessions")
+        .insert({
+            user_id: user.id,
+            role: role + " (Quiz)",
+            industry: industry,
+            status: "completed",
+            score: score,
+            chat_history: [{ role: "assistant", content: `You completed a multiple choice quiz scoring ${score}%.` }],
+            feedback: {
+                clarity: "N/A",
+                structure: "N/A",
+                relevance: "N/A",
+                correctness: `${score}% accuracy`,
+                weak_areas: [],
+                recommendations: [],
+                summary: summary
+            }
+        });
+
+    if (error) throw error;
+    return true;
+}
