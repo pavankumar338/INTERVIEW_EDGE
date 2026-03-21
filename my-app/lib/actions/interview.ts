@@ -192,34 +192,39 @@ export async function getSessionHistory() {
     return data;
 }
 
-export async function saveQuizScore(role: string, industry: string, score: number) {
+export async function saveQuizScore(role: string, company: string, score: number, weakAreas: string[] = [], recommendations: string[] = []) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) throw new Error("Unauthorized");
 
-    const summary = score >= 80 ? "Excellent performance on the AI-generated quiz." : "Review required areas based on the AI-generated quiz.";
+    const summary = score >= 80 ? `Excellent performance on the technical assessment for ${company}.` : `Performance on the technical assessment for ${company} indicates areas for improvement.`;
 
     const { error } = await supabase
         .from("interview_sessions")
         .insert({
             user_id: user.id,
-            role: role + " (Quiz)",
-            industry: industry,
+            role: role,
+            industry: company,
             status: "completed",
             score: score,
-            chat_history: [{ role: "assistant", content: `You completed a multiple choice quiz scoring ${score}%.` }],
+            chat_history: [{ role: "assistant", content: `You completed a technical assessment scoring ${score}%.` }],
             feedback: {
-                clarity: "N/A",
-                structure: "N/A",
-                relevance: "N/A",
-                correctness: `${score}% accuracy`,
-                weak_areas: [],
-                recommendations: [],
+                feedback: {
+                    clarity: "N/A (Quiz)",
+                    structure: "N/A (Quiz)",
+                    relevance: "N/A (Quiz)",
+                    correctness: `${score}% accuracy`
+                },
+                weak_areas: weakAreas.length > 0 ? weakAreas : ["General Performance"],
+                recommendations: recommendations.length > 0 ? recommendations : ["Review incorrect answers in the assessment room."],
                 summary: summary
             }
         });
 
-    if (error) throw error;
+    if (error) {
+        console.error("Database Save Error:", error);
+        throw error;
+    }
     return true;
 }

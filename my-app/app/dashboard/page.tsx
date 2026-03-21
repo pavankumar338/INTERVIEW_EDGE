@@ -136,10 +136,10 @@ function GenerateQuestionsTab() {
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Failed to generate questions");
-            
+
             sessionStorage.setItem("current_assessment", JSON.stringify(data));
             sessionStorage.setItem("assessment_meta", JSON.stringify({ company, role, experience }));
-            
+
             router.push("/assessment");
         } catch (err: any) {
             setError(err.message);
@@ -161,7 +161,7 @@ function GenerateQuestionsTab() {
             <form onSubmit={handleGenerate} className="space-y-6 pt-4">
                 <div className="space-y-2">
                     <label className="text-sm font-bold ml-1 text-muted-foreground uppercase tracking-wider">Target Company</label>
-                    <input 
+                    <input
                         required
                         value={company} onChange={(e) => setCompany(e.target.value)}
                         className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-4 text-base outline-none focus:border-blue-500 focus:bg-background transition-all"
@@ -170,7 +170,7 @@ function GenerateQuestionsTab() {
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-bold ml-1 text-muted-foreground uppercase tracking-wider">Target Role</label>
-                    <input 
+                    <input
                         required
                         value={role} onChange={(e) => setRole(e.target.value)}
                         className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-4 text-base outline-none focus:border-blue-500 focus:bg-background transition-all"
@@ -179,7 +179,7 @@ function GenerateQuestionsTab() {
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-bold ml-1 text-muted-foreground uppercase tracking-wider">Experience Level</label>
-                    <select 
+                    <select
                         required
                         value={experience} onChange={(e) => setExperience(e.target.value)}
                         className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-4 text-base outline-none focus:border-blue-500 focus:bg-background transition-all appearance-none"
@@ -191,11 +191,11 @@ function GenerateQuestionsTab() {
                         <option value="Lead/Manager">Lead/Manager</option>
                     </select>
                 </div>
-                
+
                 {error && <div className="p-4 rounded-xl bg-red-500/10 text-red-500 font-bold border border-red-500/20">{error}</div>}
 
-                <button 
-                    type="submit" 
+                <button
+                    type="submit"
                     disabled={loading || !company || !role || !experience}
                     className="w-full mt-8 bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 px-4 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-3 shadow-xl shadow-blue-500/20 text-lg hover:scale-[1.02]"
                 >
@@ -218,9 +218,9 @@ export default function DashboardPage() {
     const [selectedInterest, setSelectedInterest] = useState<string | null>(null);
     const [selectedExperience, setSelectedExperience] = useState<string | null>(null);
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
-const [view, setView] = useState<
-  'overview' | 'history' | 'profile' | 'generate-questions'
->('overview');
+    const [view, setView] = useState<
+        'overview' | 'history' | 'profile' | 'generate-questions'
+    >('overview');
     const [history, setHistory] = useState<any[]>([]);
     const [selectedHistorySession, setSelectedHistorySession] = useState<any | null>(null);
     const [resume, setResume] = useState<any>(null);
@@ -289,12 +289,9 @@ const [view, setView] = useState<
 
                 <nav className="flex-1 px-4 space-y-2">
                     {[
-[
-  { id: 'overview', icon: LayoutDashboard, label: "Tech-Interview" },
-  { id: 'generate-questions', icon: MessageSquare, label: "Generate Questions" },
-  { id: 'history', icon: Star, label: "Performance in Sessions" },
-  { id: 'profile', icon: User, label: "Profile" },
-]
+                        { id: 'overview', icon: LayoutDashboard, label: "Tech-Interview" },
+                        { id: 'generate-questions', icon: MessageSquare, label: "Company Assessments" },
+                        { id: 'history', icon: Star, label: "Performance in Sessions" },
                         { id: 'profile', icon: User, label: "Profile" },
                     ].map((item) => (
                         <button
@@ -589,22 +586,22 @@ const [view, setView] = useState<
                                                         </h3>
                                                         <p className="text-xs text-muted-foreground mt-1">
                                                             {new Date(session.created_at).toLocaleDateString(undefined, {
-                                                                month: 'long',
-                                                                day: 'numeric',
-                                                                year: 'numeric',
-                                                                hour: '2-digit',
-                                                                minute: '2-digit'
+                                                                month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
                                                             })}
                                                         </p>
                                                     </div>
                                                 </div>
+
                                                 <div className="flex items-center gap-4">
                                                     <div className="text-right hidden sm:block">
-                                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</p>
-                                                        <p className={cn(
-                                                            "text-sm font-medium",
-                                                            session.status === 'completed' ? "text-green-500" : "text-yellow-500"
-                                                        )}>
+                                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Type</p>
+                                                        <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${session.role.includes('Quiz') ? 'bg-purple-500/10 text-purple-600 border-purple-500/20' : 'bg-blue-500/10 text-blue-600 border-blue-500/20'}`}>
+                                                            {session.role.includes('Quiz') ? 'Assessment' : 'Interview'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Status</p>
+                                                        <p className={cn("text-sm font-medium", session.status === 'completed' ? "text-green-500" : "text-yellow-500")}>
                                                             {session.status === 'completed' ? "Completed" : "Ongoing"}
                                                         </p>
                                                     </div>
@@ -630,16 +627,20 @@ const [view, setView] = useState<
                                                                 <>
                                                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                                                         {[
-                                                                            { label: "Clarity", value: session.feedback.feedback.clarity },
-                                                                            { label: "Structure", value: session.feedback.feedback.structure },
-                                                                            { label: "Relevance", value: session.feedback.feedback.relevance },
-                                                                            { label: "Correctness", value: session.feedback.feedback.correctness },
-                                                                        ].map((item) => (
-                                                                            <div key={item.label} className="p-4 rounded-xl bg-card border border-border">
-                                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">{item.label}</p>
-                                                                                <p className="text-sm font-medium">{item.value}</p>
-                                                                            </div>
-                                                                        ))}
+                                                                            { label: "Clarity", key: "clarity" },
+                                                                            { label: "Structure", key: "structure" },
+                                                                            { label: "Relevance", key: "relevance" },
+                                                                            { label: "Correctness", key: "correctness" },
+                                                                        ].map((item) => {
+                                                                            // Support both nested and flat structures
+                                                                            const val = session.feedback?.feedback?.[item.key] || session.feedback?.[item.key] || "N/A";
+                                                                            return (
+                                                                                <div key={item.label} className="p-4 rounded-xl bg-card border border-border">
+                                                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">{item.label}</p>
+                                                                                    <p className="text-sm font-medium">{val}</p>
+                                                                                </div>
+                                                                            );
+                                                                        })}
                                                                     </div>
 
                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -648,9 +649,12 @@ const [view, setView] = useState<
                                                                                 <AlertCircle className="w-4 h-4" /> Weak Areas
                                                                             </h4>
                                                                             <ul className="space-y-1">
-                                                                                {session.feedback.weak_areas.map((area: string, i: number) => (
+                                                                                {(session.feedback?.weak_areas || []).map((area: string, i: number) => (
                                                                                     <li key={i} className="text-xs text-muted-foreground">• {area}</li>
                                                                                 ))}
+                                                                                {(!session.feedback?.weak_areas || session.feedback.weak_areas.length === 0) && (
+                                                                                    <li className="text-xs text-muted-foreground italic">No weak areas identified. Good job!</li>
+                                                                                )}
                                                                             </ul>
                                                                         </div>
                                                                         <div className="space-y-3">
@@ -658,16 +662,21 @@ const [view, setView] = useState<
                                                                                 <CheckCircle2 className="w-4 h-4" /> Recommendations
                                                                             </h4>
                                                                             <ul className="space-y-1">
-                                                                                {session.feedback.recommendations.map((rec: string, i: number) => (
+                                                                                {(session.feedback?.recommendations || []).map((rec: string, i: number) => (
                                                                                     <li key={i} className="text-xs text-muted-foreground">• {rec}</li>
                                                                                 ))}
+                                                                                {(!session.feedback?.recommendations || session.feedback.recommendations.length === 0) && (
+                                                                                    <li className="text-xs text-muted-foreground italic">No specific recommendations yet.</li>
+                                                                                )}
                                                                             </ul>
                                                                         </div>
                                                                     </div>
 
                                                                     <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
-                                                                        <p className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-1">Summary</p>
-                                                                        <p className="text-sm text-muted-foreground italic">"{session.feedback.summary}"</p>
+                                                                        <p className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-1">Session Summary</p>
+                                                                        <p className="text-sm text-muted-foreground italic leading-relaxed">
+                                                                            "{session.feedback?.summary || session.feedback?.feedbackSummary || "No summary available for this session."}"
+                                                                        </p>
                                                                     </div>
 
                                                                     {session.feedback.qa_analysis && session.feedback.qa_analysis.length > 0 && (
@@ -717,17 +726,9 @@ const [view, setView] = useState<
                                 )}
                             </div>
                         </div>
-) : view === 'generate-questions' ? (
-    <GenerateQuestionsTab />
-) : view === 'profile' ? (
-    <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
-        <User className="w-12 h-12 text-blue-500/20" />
-        <h2 className="text-2xl font-bold">User Profile</h2>
-        <p className="text-muted-foreground max-w-md">
-            Manage your account settings and preferences here.
-        </p>
-    </div>
-) : null
+                    ) : view === 'generate-questions' ? (
+                        <GenerateQuestionsTab />
+                    ) : view === 'profile' ? (
                         <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
                             <User className="w-12 h-12 text-blue-500/20" />
                             <h2 className="text-2xl font-bold">User Profile</h2>

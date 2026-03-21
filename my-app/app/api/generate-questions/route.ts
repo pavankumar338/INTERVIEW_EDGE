@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType, Schema } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -21,39 +21,98 @@ export async function POST(request: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Fetch context using SerpApi
+    const serpApiKey = process.env.SERP_API_KEY;
+    let searchContext = "";
+    if (serpApiKey) {
+      try {
+        const query = encodeURIComponent(`${company} ${role} interview questions`);
+        const serpResponse = await fetch(`https://serpapi.com/search.json?q=${query}&api_key=${serpApiKey}`);
+        const serpData = await serpResponse.json();
+
+        const snippets = [];
+        if (serpData.organic_results && Array.isArray(serpData.organic_results)) {
+          snippets.push(...serpData.organic_results.slice(0, 5).map((r: any) => `Title: ${r.title}\nSnippet: ${r.snippet}`));
+        }
+        if (serpData.related_questions && Array.isArray(serpData.related_questions)) {
+          snippets.push(...serpData.related_questions.slice(0, 5).map((q: any) => `Question: ${q.question}\nAnswer Snippet: ${q.snippet}`));
+        }
+
+        if (snippets.length > 0) {
+          searchContext = "\n\n=== RECENT REAL-WORLD INTERVIEW CONTEXT ===\nHere is recent data gathered from web searches regarding " + company + " " + role + " interview questions:\n\n" + snippets.join("\n---\n") + "\n\nPlease HEAVILY use this gathered context to inspire, ground, and generate the specific questions and coding problems for this assessment instead of just using generic questions. Make sure it stays appropriate for a candidate with " + experience + " of experience.\n===========================================\n";
+        }
+      } catch (e) {
+        console.error("Failed to fetch from SERP API", e);
+        // We gracefully continue without context if the search fails.
+      }
+    }
+
+    const responseSchema: Schema = {
+      type: SchemaType.OBJECT,
+      properties: {
+        rounds: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              roundName: { type: SchemaType.STRING },
+              roundType: { type: SchemaType.STRING },
+              questions: {
+                type: SchemaType.ARRAY,
+                items: {
+                  type: SchemaType.OBJECT,
+                  properties: {
+                    question: { type: SchemaType.STRING },
+                    options: {
+                      type: SchemaType.ARRAY,
+                      items: { type: SchemaType.STRING }
+                    },
+                    correctAnswer: { type: SchemaType.STRING },
+                    explanation: { type: SchemaType.STRING }
+                  },
+                  required: ["question", "options", "correctAnswer", "explanation"]
+                }
+              },
+              problems: {
+                type: SchemaType.ARRAY,
+                items: {
+                  type: SchemaType.OBJECT,
+                  properties: {
+                    problemStatement: { type: SchemaType.STRING },
+                    starterCode: { type: SchemaType.STRING },
+                    language: { type: SchemaType.STRING }
+                  },
+                  required: ["problemStatement", "starterCode", "language"]
+                }
+              }
+            },
+            required: ["roundName", "roundType"]
+          }
+        }
+      },
+      required: ["rounds"]
+    };
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchema,
+        maxOutputTokens: 20000,
+      }
+    });
 
     const prompt = `You are an expert technical interviewer and career coach. Please generate a customized multi-round technical interview assessment for a ${role} position at ${company} for a candidate with ${experience} of experience.
-
-CRITICAL INSTRUCTIONS:
-1. The rounds MUST be specifically themed around topics that ${company} heavily focuses on for a ${role} (e.g., Data Structures (DSA), Database Management (DBMS), Object Oriented Programming (OOPS), System Design, or Core CS subjects).
-2. Generate 2 or 3 "multiple_choice" rounds. Each round should have exactly 3 highly relevant questions.
-3. Generate exactly 1 "coding" round at the end, containing a single problem statement typically asked by ${company}.
-
-Output strictly as JSON in the following format, without any markdown formatting wrappers:
-{
-  "rounds": [
-    {
-      "roundName": "Data Structures & Algorithms",
-      "roundType": "multiple_choice",
-      "questions": [
-        {
-          "question": "What is the time complexity of...",
-          "options": ["O(1)", "O(N)", "O(N log N)", "O(N^2)"],
-          "correctAnswer": "O(N log N)",
-          "explanation": "Because..."
-        }
-      ]
-    },
-    {
-      "roundName": "Coding Challenge",
-      "roundType": "coding",
-      "problemStatement": "Write a function to...",
-      "starterCode": "function solve() {\\n  // write your code here\\n}",
-      "language": "javascript"
-    }
-  ]
-}`;
+${searchContext}
+CRITICAL INSTRUCTIONS - GENERATE EXACTLY 4 ROUNDS WITH THE FOLLOWING STRUCTURE:
+1. Round 1: "Aptitude" (roundType: "multiple_choice") containing exactly 10 questions.
+2. Round 2: "CS Fundamentals" (roundType: "multiple_choice") containing exactly 10 questions relevant to ${role}.
+3. Round 3: "DSA Fundamentals" (roundType: "multiple_choice") containing exactly 10 questions about Data Structures and Algorithms.
+4. Round 4: "Coding Round" (roundType: "coding") containing EXACTLY 3 coding problems. NOTE: Return an array of "problems", not a single problemStatement!
+   - FORMAT: Each coding problem MUST be formatted exactly like a LeetCode problem.
+   - CONTENT: Include a clear Problem Description, 2-3 Examples (with Input/Output/Explanation), and technical Constraints.
+   - DIFFICULTY: Scale the algorithmic difficulty realistically based on the company (${company}) and the candidate's ${experience} of experience. Avoid generic or overly simple questions like "Two Sum" or "FizzBuzz" unless it is an entry-level test. Provide challenging, high-quality questions proper for the role.`;
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
@@ -72,10 +131,15 @@ Output strictly as JSON in the following format, without any markdown formatting
       }
 
       parsedData = JSON.parse(cleanJson);
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to parse JSON response from Gemini:", responseText);
+      console.error("Parse Error:", e.message);
       return NextResponse.json(
-        { error: "Failed to parse the AI output: " + responseText.substring(0, 100) + "..." },
+        {
+          error: "Failed to parse the AI output",
+          details: e.message,
+          rawOutput: responseText.substring(0, 500)
+        },
         { status: 500 }
       );
     }

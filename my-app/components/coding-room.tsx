@@ -74,7 +74,7 @@ export function CodingRoom({ role, industry, company, onComplete }: { role: stri
 
                 <div className="space-y-6">
                     <p className="text-sm leading-relaxed text-muted-foreground">{challenge.description}</p>
-                    
+
                     <div className="space-y-4">
                         <h3 className="text-sm font-bold uppercase tracking-widest text-emerald-500">Examples</h3>
                         {challenge.examples.map((ex: any, i: number) => (
@@ -86,7 +86,7 @@ export function CodingRoom({ role, industry, company, onComplete }: { role: stri
                         ))}
                     </div>
                 </div>
-                
+
                 <div className="mt-auto hidden">
                     {/* Placeholder for hints if generated */}
                 </div>
@@ -107,7 +107,7 @@ export function CodingRoom({ role, industry, company, onComplete }: { role: stri
                             <RefreshCcw className="w-4 h-4" />
                         </button>
                     </div>
-                    
+
                     <div className="flex-1 rounded-2xl bg-[#0d1117] border border-border overflow-hidden relative group">
                         <textarea
                             value={code}

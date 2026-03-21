@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType, Schema } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -15,7 +15,25 @@ export async function POST(request: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const responseSchema: Schema = {
+      type: SchemaType.OBJECT,
+      properties: {
+        score: { type: SchemaType.NUMBER },
+        feedback: { type: SchemaType.STRING },
+        timeComplexity: { type: SchemaType.STRING },
+        spaceComplexity: { type: SchemaType.STRING }
+      },
+      required: ["score", "feedback", "timeComplexity", "spaceComplexity"]
+    };
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchema
+      }
+    });
 
     const prompt = `You are an expert technical interviewer evaluating a candidate's code submission for an interview challenge.
     
@@ -40,13 +58,13 @@ Output strictly as JSON in the following format, without any markdown formatting
 
     const result = await model.generateContent(prompt);
     let cleanJson = result.response.text().replace(/```json/gi, '').replace(/```/g, '').trim();
-    
+
     const firstBrace = cleanJson.indexOf('{');
     const lastBrace = cleanJson.lastIndexOf('}');
     if (firstBrace !== -1 && lastBrace !== -1) {
       cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
     }
-    
+
     return NextResponse.json(JSON.parse(cleanJson));
   } catch (error: any) {
     console.error("Evaluation Error:", error);
