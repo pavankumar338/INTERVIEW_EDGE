@@ -107,13 +107,21 @@ export async function endInterviewSession(sessionId: string, finalHistory: any[]
             "relevance": "string",
             "correctness": "string"
           },
+          "qa_analysis": [
+            {
+              "question": "string",
+              "answer": "string",
+              "feedback": "string",
+              "improvement": "string"
+            }
+          ],
           "weak_areas": ["string"],
           "recommendations": ["string"],
           "summary": "string"
         }
         
         Output only the JSON block.`,
-        messages: finalHistory,
+        prompt: `Here is the interview transcript to analyze:\n\n${finalHistory.map(m => `${m.role || "unknown"}: ${m.content || ""}`).join('\n')}`,
     });
 
     let evaluation;
@@ -133,6 +141,7 @@ export async function endInterviewSession(sessionId: string, finalHistory: any[]
                 relevance: "Not evaluated",
                 correctness: "Not evaluated"
             },
+            qa_analysis: parsed.qa_analysis || [],
             weak_areas: parsed.weak_areas || [],
             recommendations: parsed.recommendations || [],
             summary: parsed.summary || "Evaluation completed."
@@ -143,6 +152,7 @@ export async function endInterviewSession(sessionId: string, finalHistory: any[]
         evaluation = {
             score: 65,
             feedback: { clarity: "Analysis error", structure: "Analysis error", relevance: "Analysis error", correctness: "Analysis error" },
+            qa_analysis: [],
             weak_areas: ["Communication"],
             recommendations: ["Review transcript manually"],
             summary: "The AI was unable to generate a structured report. Your session was saved."
