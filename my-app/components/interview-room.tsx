@@ -3,7 +3,7 @@
 import { useVapi } from "@/hooks/use-vapi";
 import { Orb } from "./orb";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, PhoneOff, Play, Info, ArrowRight, Video, Camera, Brain, Timer } from "lucide-react";
+import { Mic, PhoneOff, Play, Info, ArrowRight, Video, Camera, Brain, Timer, Download, RotateCcw, FileVideo } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
@@ -26,12 +26,13 @@ export function InterviewRoom({
 }) {
     const { isCalling, callStatus, toggleCall, messages } = useVapi();
     const [sessionId, setSessionId] = useState<string | null>(null);
-    const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
     const [isSaving, setIsSaving] = useState(false);
     const [stream, setStream] = useState<MediaStream | null>(null);
     const isSavingRef = useRef(false);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const chunksRef = useRef<Blob[]>([]);
+    const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
 
     const hasKeys = useMemo(() => {
         return !!process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY && !!process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
@@ -92,7 +93,6 @@ export function InterviewRoom({
                 try {
                     const session = await startInterviewSession(role, industry);
                     setSessionId(session.id);
-                    setTimeLeft(300); // Reset timer to 5 mins
                 } catch (error) {
                     console.error("Failed to start session:", error);
                 }
@@ -100,45 +100,34 @@ export function InterviewRoom({
         }
     }, [isCalling, isLoggedIn, role, industry, sessionId]);
 
-    // Timer Logic
-    useEffect(() => {
-        if (isCalling && timeLeft > 0) {
-            timerRef.current = setInterval(() => {
-                setTimeLeft((prev) => {
-                    if (prev <= 1) {
-                        if (timerRef.current) clearInterval(timerRef.current);
-                        toggleCall(); // Force end call when time is up
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        } else {
-            if (timerRef.current) clearInterval(timerRef.current);
-        }
-
-        return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
-        };
-    }, [isCalling, timeLeft, toggleCall]);
-
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
-    };
-
-    // Video Stream Logic
+    // Video Stream & Recording Logic
     useEffect(() => {
         let activeStream: MediaStream | null = null;
         if (isCalling) {
-            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
                 .then((s) => {
                     activeStream = s;
                     setStream(s);
+                    
+                    // Start Recording
+                    chunksRef.current = [];
+                    const recorder = new MediaRecorder(s, { mimeType: 'video/webm;codecs=vp8,opus' });
+                    recorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) chunksRef.current.push(e.data);
+                    };
+                    recorder.onstop = () => {
+                        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+                        const url = URL.createObjectURL(blob);
+                        setRecordingUrl(url);
+                    };
+                    recorder.start();
+                    mediaRecorderRef.current = recorder;
                 })
                 .catch((err) => console.error("Failed to get video stream:", err));
         } else {
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+                mediaRecorderRef.current.stop();
+            }
             if (stream) {
                 stream.getTracks().forEach(t => t.stop());
                 setStream(null);
@@ -157,6 +146,8 @@ export function InterviewRoom({
         }
     }, [stream, isCalling]);
 
+    const [sessionCompleted, setSessionCompleted] = useState(false);
+
     // End session in DB when call stops
     useEffect(() => {
         if (!isCalling && sessionId && !isSavingRef.current) {
@@ -165,6 +156,10 @@ export function InterviewRoom({
                 try {
                     // small delay to catch late transcripts
                     await new Promise((r) => setTimeout(r, 1000));
+
+                    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+                        mediaRecorderRef.current.stop();
+                    }
 
                     const formattedMessages = messages
                         .filter((m) => m.type === "transcript" && m.transcriptType === "final")
@@ -177,14 +172,12 @@ export function InterviewRoom({
                         setIsSaving(true);
                         await endInterviewSession(sessionId, formattedMessages);
                         setSessionId(null);
-                        onComplete?.();
+                        setSessionCompleted(true);
                         setIsSaving(false);
                     } else if (sessionId) {
-                        // Fallback: If no transcripts, still close the session in DB
-                        // This prevents sessions from staying "ongoing"
                         await endInterviewSession(sessionId, [{ role: "assistant", content: "No conversation recorded." }]);
                         setSessionId(null);
-                        onComplete?.();
+                        setSessionCompleted(true);
                     }
                 } catch (error) {
                     console.error("Failed to end session:", error);
@@ -193,7 +186,7 @@ export function InterviewRoom({
                 }
             })();
         }
-    }, [isCalling, sessionId, messages, onComplete]);
+    }, [isCalling, sessionId, messages]);
 
     return (
         <div className="flex flex-col items-center justify-between min-h-[650px] w-full max-w-5xl mx-auto p-6 md:p-12 rounded-[40px] bg-white/50 dark:bg-zinc-900/50 border border-border backdrop-blur-2xl shadow-2xl relative overflow-hidden transition-all duration-700">
@@ -244,13 +237,6 @@ export function InterviewRoom({
                                         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold bg-secondary/80 backdrop-blur-md border border-border shadow-sm">
                                             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                                             <span className="text-muted-foreground">Recording</span>
-                                        </div>
-                                        <div className={cn(
-                                            "flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border shadow-sm backdrop-blur-md",
-                                            timeLeft < 60 ? "bg-red-500/10 border-red-500/50 text-red-500 animate-pulse" : "bg-blue-500/10 border-blue-500/50 text-blue-600 dark:text-blue-400"
-                                        )}>
-                                            <Timer className="w-4 h-4" />
-                                            {formatTime(timeLeft)}
                                         </div>
                                     </div>
                                 )}
@@ -317,6 +303,49 @@ export function InterviewRoom({
 
                 {/* Controls Area */}
                 <div className="flex flex-col items-center gap-8 mt-12 w-full max-w-3xl">
+                    <AnimatePresence>
+                        {recordingUrl && !isCalling && (
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="w-full flex flex-col items-center gap-6 p-8 rounded-[32px] bg-blue-500/5 border border-blue-500/10 mb-8"
+                            >
+                                <div className="flex items-center gap-3 mb-2">
+                                    <FileVideo className="w-6 h-6 text-blue-500" />
+                                    <h3 className="text-xl font-bold">Review Your Session</h3>
+                                </div>
+                                <video 
+                                    src={recordingUrl} 
+                                    controls 
+                                    className="w-full aspect-video rounded-2xl border border-border bg-black shadow-2xl"
+                                />
+                                <div className="flex flex-col sm:flex-row gap-4 w-full">
+                                    <a 
+                                        href={recordingUrl} 
+                                        download={`interview-session-${new Date().getTime()}.webm`}
+                                        className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-secondary text-foreground font-bold border border-border hover:bg-secondary/80 transition-all shadow-sm"
+                                    >
+                                        <Download className="w-5 h-5" /> Download Recording
+                                    </a>
+                                    {sessionCompleted && (
+                                        <button 
+                                            onClick={() => onComplete?.()}
+                                            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
+                                        >
+                                            View Performance Report <ArrowRight className="w-5 h-5" />
+                                        </button>
+                                    )}
+                                    <button 
+                                        onClick={() => setRecordingUrl(null)}
+                                        className="px-6 py-4 rounded-2xl bg-secondary hover:bg-secondary/80 text-foreground font-bold border border-border transition-all"
+                                    >
+                                        <RotateCcw className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
                     <div className="relative">
                         <motion.button
                             whileHover={{ scale: 1.05 }}
@@ -371,4 +400,3 @@ export function InterviewRoom({
         </div>
     );
 }
-

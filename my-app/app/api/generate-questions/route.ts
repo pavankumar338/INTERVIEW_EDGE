@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { company, role, experience } = await request.json();
+    const { company, role, experience, resumeContent } = await request.json();
 
     if (!company || !role || !experience) {
       return NextResponse.json(
@@ -103,16 +103,21 @@ export async function POST(request: Request) {
       }
     });
 
+    const resumeContext = resumeContent ? `\n\n=== CANDIDATE RESUME CONTEXT ===\n${resumeContent}\n================================\n` : "";
+
     const prompt = `You are an expert technical interviewer and career coach. Please generate a customized multi-round technical interview assessment for a ${role} position at ${company} for a candidate with ${experience} of experience.
 ${searchContext}
-CRITICAL INSTRUCTIONS - GENERATE EXACTLY 4 ROUNDS WITH THE FOLLOWING STRUCTURE:
-1. Round 1: "Aptitude" (roundType: "multiple_choice") containing exactly 10 questions.
-2. Round 2: "CS Fundamentals" (roundType: "multiple_choice") containing exactly 10 questions relevant to ${role}.
-3. Round 3: "DSA Fundamentals" (roundType: "multiple_choice") containing exactly 10 questions about Data Structures and Algorithms.
-4. Round 4: "Coding Round" (roundType: "coding") containing EXACTLY 3 coding problems. NOTE: Return an array of "problems", not a single problemStatement!
-   - FORMAT: Each coding problem MUST be formatted exactly like a LeetCode problem.
-   - CONTENT: Include a clear Problem Description, 2-3 Examples (with Input/Output/Explanation), and technical Constraints.
-   - DIFFICULTY: Scale the algorithmic difficulty realistically based on the company (${company}) and the candidate's ${experience} of experience. Avoid generic or overly simple questions like "Two Sum" or "FizzBuzz" unless it is an entry-level test. Provide challenging, high-quality questions proper for the role.`;
+${resumeContext}
+
+CRITICAL INSTRUCTIONS - GENERATE EXACTLY 3 ROUNDS WITH THE FOLLOWING STRUCTURE:
+1. Round 1: "CS Fundamentals & Core Topics" (roundType: "multiple_choice") containing exactly 10 questions relevant to ${role}.
+2. Round 2: "Resume-Based Technical Assessment" (roundType: "multiple_choice") containing exactly 10 questions.
+   - If Resume Context is provided: Base these questions on the candidate's specific projects, skills, and work history mentioned in the resume. Focus on "how" and "why" behind their choices.
+   - If No Resume Context: Base these on common technical scenarios and industry standards for someone with ${experience} of experience.
+3. Round 3: "Algorithmic Challenges (DSA)" (roundType: "coding") containing EXACTLY 3 coding problems. NOTE: Return an array of "problems"!
+   - FORMAT: Each coding problem MUST be formatted exactly like a LeetCode problem (Description, Examples, Constraints).
+   - DIFFICULTY: Scale the algorithmic difficulty realistically based on the company (${company}) and the candidate's ${experience} of experience.
+   - TAILORING: Ensure problems represent the type of logic used at ${company} or in the ${role}.`;
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();

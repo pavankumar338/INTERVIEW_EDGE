@@ -18,6 +18,8 @@ import {
     AlertCircle,
     FileText,
     Zap,
+    BookOpen,
+    Calendar,
     ShieldCheck,
     Cloud,
     Database,
@@ -36,6 +38,8 @@ import { InterviewRoom } from "@/components/interview-room";
 import { getSessionHistory } from "@/lib/actions/interview";
 import { ResumeUpload } from "@/components/resume-upload";
 import { getLatestResume } from "@/lib/actions/resume";
+import { ResumeAnalysis } from "@/components/resume-analysis";
+import { Lightbulb as LightbulbIcon } from "lucide-react";
 
 
 const INTERESTS = [
@@ -114,13 +118,233 @@ const INTERESTS = [
 
 ];
 
-function GenerateQuestionsTab() {
+function StudyPathTab() {
+    const [role, setRole] = useState("");
+    const [topics, setTopics] = useState("");
+    const [days, setDays] = useState("7");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [plan, setPlan] = useState<any>(null);
+
+    const handleGenerate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+        setPlan(null);
+
+        try {
+            const res = await fetch("/api/generate-study-path", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ role, topics, days: parseInt(days) }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to generate study path");
+            setPlan(data);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-12">
+            {!plan ? (
+                <div className="max-w-3xl border border-border bg-card p-10 rounded-3xl mx-auto shadow-xl animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    <div className="space-y-4 text-center pb-6 border-b border-border">
+                        <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <BookOpen className="w-8 h-8" />
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight">Personalized Study Path</h1>
+                        <p className="text-muted-foreground text-lg">Generate a day-by-day learning roadmap tailored to your goals.</p>
+                        <div className="flex justify-center pt-2">
+                            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                                Beginner to Advanced (0-Level Start)
+                            </span>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleGenerate} className="space-y-6 pt-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold ml-1 text-muted-foreground uppercase tracking-wider">Target Role</label>
+                            <input
+                                required
+                                value={role} onChange={(e) => setRole(e.target.value)}
+                                className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-4 outline-none focus:border-blue-500 transition-all"
+                                placeholder="e.g. Senior Frontend Engineer"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between ml-1">
+                                <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Key Topics</label>
+                                <button 
+                                    type="button"
+                                    onClick={async () => {
+                                        if (!role) {
+                                            setError("Please enter a role first to get suggestions.");
+                                            return;
+                                        }
+                                        setLoading(true);
+                                        try {
+                                            const res = await fetch("/api/generate-questions", { // Reuse existing logic or new simple route
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({ company: "General", role, experience: "Intermediate" }),
+                                            });
+                                            // This is just a placeholder logic to show how I'd approach it
+                                            setTopics(`Advanced ${role} concepts, System Design, Scalability, Performance Optimization`);
+                                        } catch (e) {} finally { setLoading(false); }
+                                    }}
+                                    className="text-[10px] font-bold text-blue-500 hover:text-blue-400 uppercase tracking-widest"
+                                >
+                                    Suggest Focus Areas
+                                </button>
+                            </div>
+                            <textarea
+                                required
+                                value={topics} onChange={(e) => setTopics(e.target.value)}
+                                className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-4 min-h-[100px] outline-none focus:border-blue-500 transition-all resize-none"
+                                placeholder="e.g. React performance optimization, System Design, Browser internals"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold ml-1 text-muted-foreground uppercase tracking-wider">Duration (Days)</label>
+                            <div className="relative group">
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="90"
+                                    required
+                                    value={days} onChange={(e) => setDays(e.target.value)}
+                                    className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-4 outline-none focus:border-blue-500 transition-all font-bold text-lg"
+                                    placeholder="Enter number of days..."
+                                />
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold pointer-events-none">
+                                    Days
+                                </div>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground ml-1 uppercase tracking-widest mt-2 italic">Typically 3 - 30 days works best</p>
+                        </div>
+
+                        {error && <div className="p-4 rounded-xl bg-red-500/10 text-red-500 font-bold border border-red-500/20">{error}</div>}
+
+                        <button
+                            type="submit"
+                            disabled={loading || !role || !topics}
+                            className="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 rounded-xl transition-all disabled:opacity-50 flex justify-center items-center gap-3 shadow-blue-500/20 text-lg"
+                        >
+                            {loading ? (
+                                <>
+                                    <span className="animate-spin w-5 h-5 border-2 border-white/30 border-t-transparent rounded-full" />
+                                    Architecting Your Path...
+                                </>
+                            ) : (
+                                "Generate My Study Plan"
+                            )}
+                        </button>
+                    </form>
+                </div>
+            ) : (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-border">
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-3 text-blue-500 font-bold uppercase tracking-widest text-sm">
+                                <Zap className="w-4 h-4" /> Personalized Plan
+                            </div>
+                            <h1 className="text-4xl font-black tracking-tight">{plan.title}</h1>
+                            <p className="text-muted-foreground text-lg max-w-2xl">{plan.description}</p>
+                        </div>
+                        <button
+                            onClick={() => setPlan(null)}
+                            className="px-6 py-3 bg-secondary hover:bg-secondary/80 rounded-xl font-bold transition-all h-fit"
+                        >
+                            Create New Plan
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
+                        {plan.modules.map((module: any) => (
+                            <div key={module.day} className="relative pl-12 pb-12 last:pb-0 group">
+                                {/* Timeline Line */}
+                                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border group-last:bg-transparent" />
+                                
+                                {/* Day Circle */}
+                                <div className="absolute left-0 top-0 w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-600/30 z-10 transition-transform group-hover:scale-110">
+                                    {module.day}
+                                </div>
+
+                                <div className="bg-card border border-border rounded-3xl p-8 hover:border-blue-500/30 transition-all hover:shadow-2xl hover:shadow-blue-500/5">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                                        <h3 className="text-2xl font-bold flex items-center gap-3">
+                                            {module.title}
+                                            <span className="text-xs bg-secondary px-3 py-1 rounded-full text-muted-foreground font-medium">Day {module.day} Phase</span>
+                                        </h3>
+                                    </div>
+                                    <p className="text-muted-foreground leading-relaxed mb-8">{module.description}</p>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className="space-y-4">
+                                            <h4 className="text-sm font-bold text-blue-500 uppercase tracking-widest flex items-center gap-2">
+                                                <Calendar className="w-4 h-4" /> Daily Tasks
+                                            </h4>
+                                            <ul className="space-y-3">
+                                                {module.tasks.map((task: string, i: number) => (
+                                                    <li key={i} className="flex gap-3 text-sm text-foreground/80 leading-relaxed">
+                                                        <div className="w-5 h-5 rounded bg-blue-500/10 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-blue-500 mt-0.5">
+                                                            {i + 1}
+                                                        </div>
+                                                        {task}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <h4 className="text-sm font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-2">
+                                                <Globe className="w-4 h-4" /> Recommended Resources
+                                            </h4>
+                                            <div className="space-y-3">
+                                                {module.resources.map((res: any, i: number) => (
+                                                    <a 
+                                                        key={i} 
+                                                        href={res.url} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="block p-4 rounded-2xl bg-secondary/30 border border-border hover:bg-secondary/50 hover:border-blue-500/30 transition-all group/res"
+                                                    >
+                                                        <p className="text-sm font-bold group-hover/res:text-blue-500 transition-colors">{res.name}</p>
+                                                        <div className="flex items-center justify-between mt-1">
+                                                            <span className="text-[10px] uppercase font-bold text-muted-foreground">{res.type || "Link"}</span>
+                                                            <ArrowRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover/res:opacity-100 group-hover/res:translate-x-1 transition-all" />
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function GenerateQuestionsTab({ activeResume }: { activeResume: any }) {
     const [company, setCompany] = useState("");
     const [role, setRole] = useState("");
     const [experience, setExperience] = useState("");
+    const [useResume, setUseResume] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const router = useRouter();
+
+    useEffect(() => {
+        if (activeResume) setUseResume(true);
+    }, [activeResume]);
 
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -131,7 +355,12 @@ function GenerateQuestionsTab() {
             const res = await fetch("/api/generate-questions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ company, role, experience }),
+                body: JSON.stringify({ 
+                    company, 
+                    role, 
+                    experience,
+                    resumeContent: useResume ? activeResume?.extracted_text : null 
+                }),
             });
 
             const data = await res.json();
@@ -192,6 +421,34 @@ function GenerateQuestionsTab() {
                     </select>
                 </div>
 
+                <div className="space-y-4 pt-2">
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-secondary/30">
+                        <div className="flex items-center gap-3">
+                            <div className={cn("p-2 rounded-lg", activeResume ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500")}>
+                                <FileText className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold">Resume Personalization</p>
+                                <p className="text-xs text-muted-foreground">{activeResume ? `Using: ${activeResume.filename}` : "No active resume found"}</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            disabled={!activeResume}
+                            onClick={() => setUseResume(!useResume)}
+                            className={cn(
+                                "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-30",
+                                useResume ? "bg-blue-600" : "bg-zinc-700"
+                            )}
+                        >
+                            <span className={cn(
+                                "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                                useResume ? "translate-x-6" : "translate-x-1"
+                            )} />
+                        </button>
+                    </div>
+                </div>
+
                 {error && <div className="p-4 rounded-xl bg-red-500/10 text-red-500 font-bold border border-red-500/20">{error}</div>}
 
                 <button
@@ -219,7 +476,7 @@ export default function DashboardPage() {
     const [selectedExperience, setSelectedExperience] = useState<string | null>(null);
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [view, setView] = useState<
-        'overview' | 'history' | 'profile' | 'generate-questions'
+        'overview' | 'history' | 'profile' | 'generate-questions' | 'study-path' | 'resume-analyst'
     >('overview');
     const [history, setHistory] = useState<any[]>([]);
     const [selectedHistorySession, setSelectedHistorySession] = useState<any | null>(null);
@@ -291,6 +548,8 @@ export default function DashboardPage() {
                     {[
                         { id: 'overview', icon: LayoutDashboard, label: "Tech-Interview" },
                         { id: 'generate-questions', icon: MessageSquare, label: "Company Assessments" },
+                        { id: 'study-path', icon: BookOpen, label: "Study Plan" },
+                        { id: 'resume-analyst', icon: ShieldCheck, label: "Resume Analyst" },
                         { id: 'history', icon: Star, label: "Performance in Sessions" },
                         { id: 'profile', icon: User, label: "Profile" },
                     ].map((item) => (
@@ -392,15 +651,30 @@ export default function DashboardPage() {
                                                             </div>
                                                         </div>
                                                         <div className="pt-4 border-t border-border flex items-center justify-between">
-                                                            <span className="text-xs font-semibold text-emerald-500 flex items-center gap-1">
-                                                                <CheckCircle2 className="w-3 h-3" /> Ready for RAG
-                                                            </span>
-                                                            <button
-                                                                onClick={() => setResume(null)}
-                                                                className="text-xs text-muted-foreground hover:text-foreground underline"
-                                                            >
-                                                                Update
-                                                            </button>
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="text-xs font-semibold text-emerald-500 flex items-center gap-1">
+                                                                    <CheckCircle2 className="w-3 h-3" /> Ready for RAG
+                                                                </span>
+                                                                {resume.analysis?.score && (
+                                                                    <span className="text-xs font-bold text-blue-500">
+                                                                        Score: {resume.analysis.score}/100
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex flex-col gap-2 items-end">
+                                                                <button
+                                                                    onClick={() => setResume(null)}
+                                                                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                                                                >
+                                                                    Update
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setView('resume-analyst')}
+                                                                    className="text-xs font-bold text-blue-500 hover:text-blue-400"
+                                                                >
+                                                                    Full Analysis →
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -726,8 +1000,37 @@ export default function DashboardPage() {
                                 )}
                             </div>
                         </div>
+                    ) : view === 'study-path' ? (
+                        <StudyPathTab />
                     ) : view === 'generate-questions' ? (
-                        <GenerateQuestionsTab />
+                        <GenerateQuestionsTab activeResume={resume} />
+                    ) : view === 'resume-analyst' ? (
+                        <div className="space-y-8">
+                            <div className="space-y-2">
+                                <h1 className="text-4xl font-bold tracking-tight">Resume Analyst</h1>
+                                <p className="text-muted-foreground text-lg">AI-powered deep dive into your resume for corrections, scoring, and strategic recommendations.</p>
+                            </div>
+
+                            {resume ? (
+                                <ResumeAnalysis analysis={resume.analysis} />
+                            ) : (
+                                <div className="max-w-2xl mx-auto py-12 text-center space-y-6">
+                                    <div className="w-20 h-20 bg-secondary rounded-[32px] flex items-center justify-center mx-auto text-muted-foreground/30">
+                                        <FileText className="w-10 h-10" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-xl font-bold">No Resume Found</h3>
+                                        <p className="text-muted-foreground">Please upload your resume first to get a detailed analysis and score.</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setView('overview')}
+                                        className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all"
+                                    >
+                                        Go to Upload
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     ) : view === 'profile' ? (
                         <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
                             <User className="w-12 h-12 text-blue-500/20" />

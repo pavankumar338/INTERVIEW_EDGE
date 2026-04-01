@@ -9,6 +9,49 @@ const openai = createOpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
+export async function analyzeResume(extractedText: string) {
+    const { text: analysisJson } = await generateText({
+        model: openai("openai/gpt-4o-mini"),
+        system: `You are a warm, professional Career Mentor with 20 years of experience in specialized recruiting. 
+        Your goal is to provide a thoughtful, human-like review of a candidate's resume.
+        
+        CRITERIA FOR MENTORSHIP RATING (0-100):
+        - Impact: Does the candidate show the 'value' they brought, not just tasks?
+        - Clarity: Is the story of their career easy to follow?
+        - Action: Do they use engaging, professional language?
+        - Relevance: Do they have the right keywords for their target industry?
+        
+        YOUR REVIEW SECTIONS:
+        1. SCORE: An honest, encouraging rating out of 100.
+        2. RECOMMENDATIONS: Actionable, friendly advice on what to change.
+        3. STRENGTHS: Highlights of what they've done exceptionally well.
+        4. MISSING: Gentle notes on what's currently missing.
+        5. ATS TIPS: Practical "insider" tips for modern application systems.
+        
+        Return the response as a valid JSON object with: 
+        { "score": number, 
+          "breakdown": { "impact": number, "clarity": number, "verbs": number, "keywords": number },
+          "recommendations": string[], "strengths": string[], 
+          "missing_info": string[], "ats_tips": string[] }`,
+        prompt: `Resume Text:\n${extractedText}`,
+    });
+
+    try {
+        const jsonMatch = analysisJson.match(/\{[\s\S]*\}/);
+        return jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(analysisJson);
+    } catch (e) {
+        console.error("Failed to parse analysis JSON:", e);
+        return {
+            score: 0,
+            breakdown: { impact: 0, clarity: 0, verbs: 0, keywords: 0 },
+            recommendations: ["Failed to analyze resume. Please try again."],
+            strengths: [],
+            missing_info: [],
+            ats_tips: []
+        };
+    }
+}
+
 export async function uploadResume(formData: FormData) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -40,14 +83,18 @@ export async function uploadResume(formData: FormData) {
         console.error("Failed to parse structured JSON:", e);
     }
 
-    // 3. Store resume record
+    // 3. New: Generate detailed analysis
+    const analysis = await analyzeResume(extractedText);
+
+    // 4. Store resume record
     const { data: resume, error: resumeError } = await supabase
         .from("resumes")
         .insert({
             user_id: user.id,
             filename: file.name,
             extracted_text: extractedText,
-            structured_data: structuredData
+            structured_data: structuredData,
+            analysis: analysis // Make sure to add this column to your DB
         })
         .select()
         .single();

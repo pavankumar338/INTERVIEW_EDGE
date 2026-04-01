@@ -92,29 +92,55 @@ export async function endInterviewSession(sessionId: string, finalHistory: any[]
         .eq("id", sessionId)
         .single();
 
+    // Check if there are any user messages at all
+    const userMessages = finalHistory.filter(m => m.role === "user");
+    const totalUserChars = userMessages.reduce((sum, m) => sum + (m.content?.length || 0), 0);
+
+    // If no user messages or extremely short (e.g., just "hi"), don't even ask the AI
+    if (userMessages.length === 0 || totalUserChars < 10) {
+        const evaluation = {
+            score: 0,
+            feedback: { 
+                clarity: "No response recorded", 
+                structure: "No response recorded", 
+                relevance: "No response recorded", 
+                correctness: "No response recorded" 
+            },
+            qa_analysis: [],
+            weak_areas: ["Communication", "Engagement"],
+            recommendations: ["Please participate in the interview by answering the questions provided.", "Ensure your microphone is working correctly."],
+            summary: "The candidate did not provide any meaningful responses during the session."
+        };
+        
+        await supabase
+            .from("interview_sessions")
+            .update({
+                status: "completed",
+                chat_history: [...finalHistory, { role: "assistant", content: "The session has ended. Since no responses were recorded, a score of 0 has been assigned." }],
+                score: 0,
+                feedback: evaluation
+            })
+            .eq("id", sessionId);
+            
+        return { type: "feedback", content: evaluation, sessionId };
+    }
+
     const result = await generateText({
         model: openai("openai/gpt-4o-mini"),
-        system: `You are an interview coach. Analyze the following interview transcript for the role of ${session?.role || 'Candidate'}.
+        system: `You are a strict and honest interview coach. Analyze the transcript for a ${session?.role || 'Candidate'}.
+        
+        CRITICAL SCORING RULES:
+        1. If the candidate remains silent, gives one-word non-answers, or fails to address the technical questions, you MUST give a score of 0.
+        2. Be honest. Do not give 'participation points'. 
+        3. If the candidate provides no technical value, the score should not exceed 10.
         
         Provide a constructive evaluation in strict JSON format. 
         
         Required JSON structure:
         {
           "score": number (0-100),
-          "feedback": {
-            "clarity": "string",
-            "structure": "string",
-            "relevance": "string",
-            "correctness": "string"
-          },
-          "qa_analysis": [
-            {
-              "question": "string",
-              "answer": "string",
-              "feedback": "string",
-              "improvement": "string"
-            }
-          ],
+          "feedback": { "clarity": "string", "structure": "string", "relevance": "string", "correctness": "string" },
+          "qa_analysis": [{ "question": "string", "answer": "string", "feedback": "string", "improvement": "string" }],
           "weak_areas": ["string"],
           "recommendations": ["string"],
           "summary": "string"
@@ -126,20 +152,16 @@ export async function endInterviewSession(sessionId: string, finalHistory: any[]
 
     let evaluation;
     try {
-        console.log("Analyzing transcript history length:", finalHistory.length);
-
-        // Find the JSON block in the AI response
         const jsonMatch = result.text.match(/\{[\s\S]*\}/);
         const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(result.text);
 
-        // Ensure core fields exist with defaults
         evaluation = {
-            score: typeof parsed.score === 'number' ? parsed.score : 70,
+            score: typeof parsed.score === 'number' ? parsed.score : 0,
             feedback: parsed.feedback || {
-                clarity: "Not evaluated",
-                structure: "Not evaluated",
-                relevance: "Not evaluated",
-                correctness: "Not evaluated"
+                clarity: "Manual review required",
+                structure: "Manual review required",
+                relevance: "Manual review required",
+                correctness: "Manual review required"
             },
             qa_analysis: parsed.qa_analysis || [],
             weak_areas: parsed.weak_areas || [],
@@ -148,14 +170,13 @@ export async function endInterviewSession(sessionId: string, finalHistory: any[]
         };
     } catch (e) {
         console.error("Critical: Failed to parse AI evaluation. Using fallback.", e);
-        console.log("Raw AI Response:", result.text);
         evaluation = {
-            score: 65,
+            score: 0,
             feedback: { clarity: "Analysis error", structure: "Analysis error", relevance: "Analysis error", correctness: "Analysis error" },
             qa_analysis: [],
-            weak_areas: ["Communication"],
-            recommendations: ["Review transcript manually"],
-            summary: "The AI was unable to generate a structured report. Your session was saved."
+            weak_areas: ["System Error"],
+            recommendations: ["Contact support or retry the session"],
+            summary: "The AI was unable to generate a structured report. A safety score of 0 was assigned."
         };
     }
 

@@ -84,16 +84,16 @@ export function ResumeUpload({ onUploadComplete }: { onUploadComplete?: () => vo
 
                 <div className="space-y-1">
                     <h3 className="font-bold text-lg">
-                        {isUploading ? "Processing Resume..." :
+                        {isUploading ? "Reviewing your profile..." :
                             status === "success" ? "Resume Uploaded" :
                                 status === "error" ? "Upload Failed" :
                                     "Upload Your Resume"}
                     </h3>
                     <p className="text-sm text-muted-foreground max-w-[240px]">
-                        {isUploading ? "Extracting skills and experience with AI..." :
+                        {isUploading ? "Preparing your personalized career review..." :
                             status === "success" ? `Successfully parsed ${fileName}` :
                                 status === "error" ? errorMessage :
-                                    "We'll use your resume to personalize interview questions."}
+                                    "We'll use your resume to personalize your interview experience."}
                     </p>
                 </div>
 
