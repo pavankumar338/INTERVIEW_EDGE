@@ -108,7 +108,7 @@ export function InterviewRoom({
                 .then((s) => {
                     activeStream = s;
                     setStream(s);
-                    
+
                     // Start Recording
                     chunksRef.current = [];
                     const recorder = new MediaRecorder(s, { mimeType: 'video/webm;codecs=vp8,opus' });
@@ -305,7 +305,7 @@ export function InterviewRoom({
                 <div className="flex flex-col items-center gap-8 mt-12 w-full max-w-3xl">
                     <AnimatePresence>
                         {recordingUrl && !isCalling && (
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 className="w-full flex flex-col items-center gap-6 p-8 rounded-[32px] bg-blue-500/5 border border-blue-500/10 mb-8"
@@ -314,28 +314,28 @@ export function InterviewRoom({
                                     <FileVideo className="w-6 h-6 text-blue-500" />
                                     <h3 className="text-xl font-bold">Review Your Session</h3>
                                 </div>
-                                <video 
-                                    src={recordingUrl} 
-                                    controls 
+                                <video
+                                    src={recordingUrl}
+                                    controls
                                     className="w-full aspect-video rounded-2xl border border-border bg-black shadow-2xl"
                                 />
                                 <div className="flex flex-col sm:flex-row gap-4 w-full">
-                                    <a 
-                                        href={recordingUrl} 
+                                    <a
+                                        href={recordingUrl}
                                         download={`interview-session-${new Date().getTime()}.webm`}
                                         className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-secondary text-foreground font-bold border border-border hover:bg-secondary/80 transition-all shadow-sm"
                                     >
                                         <Download className="w-5 h-5" /> Download Recording
                                     </a>
                                     {sessionCompleted && (
-                                        <button 
+                                        <button
                                             onClick={() => onComplete?.()}
                                             className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
                                         >
                                             View Performance Report <ArrowRight className="w-5 h-5" />
                                         </button>
                                     )}
-                                    <button 
+                                    <button
                                         onClick={() => setRecordingUrl(null)}
                                         className="px-6 py-4 rounded-2xl bg-secondary hover:bg-secondary/80 text-foreground font-bold border border-border transition-all"
                                     >
@@ -369,7 +369,7 @@ export function InterviewRoom({
                                 <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             )}
                         </motion.button>
-                        
+
                         {!isCalling && !isSaving && (
                             <div className="absolute -inset-4 rounded-full border border-blue-500/20 animate-ping -z-10" />
                         )}

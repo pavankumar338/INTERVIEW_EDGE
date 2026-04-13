@@ -45,20 +45,35 @@ export const useVapi = () => {
     };
 
     const onError = (error: any) => {
+      // Common "ejected" message when meeting ends normally on server side
+      const isRoutineEjection = 
+        error?.type === "ejected" || 
+        error?.error?.type === "ejected" || 
+        (typeof error?.message === 'object' && error?.message?.type === 'ejected');
+
+      if (isRoutineEjection) {
+        console.log("Vapi meeting ended normally (ejected).");
+        setCallStatus("inactive");
+        setIsCalling(false);
+        return;
+      }
+
       console.error(">>> VAPI_ERROR_DEBUG_V1 <<<");
 
       // Try to print the most useful nested fields too
       const info: any = {};
       if (error) {
         for (const key of Object.getOwnPropertyNames(error)) info[key] = error[key];
-        // common nesting patterns
         if (error.error) info.error = error.error;
         if (error.response) info.response = error.response;
         if (error.data) info.data = error.data;
       }
 
       console.error("Detailed Error Object:", info);
-      console.error("Error message:", error?.message || info?.error?.message || info?.data?.message);
+      
+      const rawMessage = error?.message || info?.error?.message || info?.data?.message;
+      const message = typeof rawMessage === 'object' ? JSON.stringify(rawMessage) : rawMessage;
+      console.error("Error message:", message);
 
       setCallStatus("inactive");
       setIsCalling(false);
@@ -86,7 +101,7 @@ export const useVapi = () => {
         vapi.off("call-end", onCallEnd);
         vapi.off("message", onMessage);
         vapi.off("error", onError);
-      } catch {}
+      } catch { }
 
       vapi.stop();
       vapiRef.current = null;
@@ -113,7 +128,7 @@ export const useVapi = () => {
       if (overrides?.assistant?.assistantId) {
         console.warn(
           "Your overrides contain overrides.assistant.assistantId — this often causes 400. " +
-            "Pass assistantId as the FIRST argument only."
+          "Pass assistantId as the FIRST argument only."
         );
       }
 
