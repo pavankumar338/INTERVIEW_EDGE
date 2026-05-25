@@ -4,13 +4,35 @@ import { createClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
 import { Chrome, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function SignInPage() {
     const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const isSubmitting = useRef(false);
     const supabase = createClient();
 
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const error = params.get('error');
+        const errorDescription = params.get('error_description');
+        
+        if (error) {
+            if (error === 'auth-code-error' || error === 'no-code') {
+                setErrorMessage("Authentication failed. Please try signing in again.");
+            } else {
+                setErrorMessage(errorDescription || error || "An unexpected error occurred during sign-in.");
+            }
+            
+            // Clean up the URL search params so the error message doesn't persist on refresh
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }, []);
+
     const handleGoogleSignIn = async () => {
+        if (isSubmitting.current) return;
+        isSubmitting.current = true;
         setIsLoading(true);
         try {
             const { error } = await supabase.auth.signInWithOAuth({
@@ -23,6 +45,7 @@ export default function SignInPage() {
         } catch (error) {
             console.error("Error signing in:", error);
             setIsLoading(false);
+            isSubmitting.current = false;
         }
     };
 
@@ -57,6 +80,11 @@ export default function SignInPage() {
                     </div>
 
                     <div className="space-y-4">
+                        {errorMessage && (
+                            <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm text-center font-medium">
+                                {errorMessage}
+                            </div>
+                        )}
                         <button
                             onClick={handleGoogleSignIn}
                             disabled={isLoading}

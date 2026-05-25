@@ -23,8 +23,11 @@ export async function GET(request: Request) {
                 return NextResponse.redirect(`${origin}${next}`)
             }
         }
+        
+        console.error("Error exchanging code for session:", error)
+        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`)
     }
 
-    // return the user to an error page with instructions
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+    // return the user to login page with no-code error
+    return NextResponse.redirect(`${origin}/login?error=no-code`)
 }
