@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS resumes (
     filename TEXT NOT NULL,
     extracted_text TEXT,
     structured_data JSONB, -- For AI parsed sections
+    analysis JSONB, -- AI-powered resume feedback and score
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

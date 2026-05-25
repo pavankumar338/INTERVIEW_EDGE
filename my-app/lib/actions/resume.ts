@@ -2,8 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 const pdf = require("pdf-parse/lib/pdf-parse.js");
-import { generateText, embed, embedMany } from "ai";
+import { generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
+import { getEmbedding } from "@/lib/huggingface";
+
 const openai = createOpenAI({
     baseURL: "https://openrouter.ai/api/v1",
     apiKey: process.env.OPENAI_API_KEY,
@@ -104,14 +106,22 @@ export async function uploadResume(formData: FormData) {
     // 4. Chunk text for RAG
     const chunks = chunkText(extractedText, 1000); // 1000 chars roughly
 
-    // 5. Generate embeddings for chunks using OpenAI (via OpenRouter)
-    // We use gpt-4o-mini embeddings or text-embedding-3-small and slice to 384 to fit the DB
-    const { embeddings } = await embedMany({
-        model: openai.embedding("openai/text-embedding-3-small"),
-        values: chunks,
-    });
-
-    const finalEmbeddings = embeddings.map(e => e.slice(0, 768));
+    // 5. Generate embeddings using Hugging Face in batches to handle rate limits gracefully
+    const BATCH_SIZE = 5;
+    const finalEmbeddings: number[][] = [];
+    
+    for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+        const batch = chunks.slice(i, i + BATCH_SIZE);
+        try {
+            const batchEmbeddings = await Promise.all(
+                batch.map(chunk => getEmbedding(chunk))
+            );
+            finalEmbeddings.push(...batchEmbeddings);
+        } catch (embError: any) {
+            console.error(`[RAG Upload] Failed to generate embeddings for batch starting at index ${i}:`, embError);
+            throw new Error(`Failed to generate embeddings: ${embError.message}`);
+        }
+    }
 
     // 6. Store chunks in DB
     const chunkInserts = chunks.map((content, i) => ({
@@ -154,13 +164,14 @@ function chunkText(text: string, size: number): string[] {
 export async function searchResumeContext(query: string, limit = 3) {
     const supabase = await createClient();
 
-    // Generate embedding for query and slice to 384
-    const { embedding } = await embed({
-        model: openai.embedding("openai/text-embedding-3-small"),
-        value: query,
-    });
-
-    const finalEmbedding = embedding.slice(0, 768);
+    // Generate embedding for query using Hugging Face (all-MiniLM-L6-v2, 384 dim)
+    let finalEmbedding: number[];
+    try {
+        finalEmbedding = await getEmbedding(query);
+    } catch (embeddingError: any) {
+        console.error("Query embedding generation failed:", embeddingError);
+        return [];
+    }
 
     // RPC call to match_documents
     const { data: documents, error } = await supabase.rpc("match_documents", {
