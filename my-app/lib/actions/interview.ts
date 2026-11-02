@@ -1,11 +1,10 @@
 "use server";
 
 import { generateText, streamText } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
-const openai = createOpenAI({
-    baseURL: "https://openrouter.ai/api/v1",
-    apiKey: process.env.OPENAI_API_KEY,
+const google = createGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 });
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
@@ -60,7 +59,7 @@ export async function getNextInterviewQuestion(sessionId: string, userMessage: s
     }
 
     const { text } = await generateText({
-        model: openai("openai/gpt-4o-mini"),
+        model: google("gemini-2.5-flash"),
         system: `You are an expert interviewer for a ${session.role} role in the ${session.industry} industry. 
         Your goal is to conduct a professional interview. 
         Ask one question at a time. 
@@ -126,7 +125,7 @@ export async function endInterviewSession(sessionId: string, finalHistory: any[]
     }
 
     const result = await generateText({
-        model: openai("openai/gpt-4o-mini"),
+        model: google("gemini-2.5-flash"),
         system: `You are a strict and honest interview coach. Analyze the transcript for a ${session?.role || 'Candidate'}.
         
         CRITICAL SCORING RULES:

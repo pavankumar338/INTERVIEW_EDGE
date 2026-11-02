@@ -3,17 +3,16 @@
 import { createClient } from "@/lib/supabase/server";
 const pdf = require("pdf-parse/lib/pdf-parse.js");
 import { generateText } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { getEmbedding } from "@/lib/huggingface";
 
-const openai = createOpenAI({
-    baseURL: "https://openrouter.ai/api/v1",
-    apiKey: process.env.OPENAI_API_KEY,
+const google = createGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 });
 
 export async function analyzeResume(extractedText: string) {
     const { text: analysisJson } = await generateText({
-        model: openai("openai/gpt-4o-mini"),
+        model: google("gemini-2.5-flash"),
         system: `You are a warm, professional Career Mentor with 20 years of experience in specialized recruiting. 
         Your goal is to provide a thoughtful, human-like review of a candidate's resume.
         
@@ -72,7 +71,7 @@ export async function uploadResume(formData: FormData) {
 
     // 2. Generate structured data using Gemini
     const { text: structuredJson } = await generateText({
-        model: openai("openai/gpt-4o-mini"),
+        model: google("gemini-2.5-flash"),
         system: "You are a professional resume parser. Extract the following information into a clean JSON structure: name, contact (email, phone, linkedin), summary, experience (array of objects with company, role, duration, description), skills (array), and education (array). Only return the JSON block.",
         prompt: `Resume Text:\n${extractedText}`,
     });
@@ -222,7 +221,7 @@ export async function queryResume(question: string) {
 
     // 2. "Augment & Generate" - Send to LLM with the context
     const { text } = await generateText({
-        model: openai("openai/gpt-4o-mini"),
+        model: google("gemini-2.5-flash"),
         system: `You are an AI assistant helping an interviewer or candidate. 
         Use the following extracted resume fragments to answer the user's question accurately.
         If the information is not in the fragments, say you don't know based on the resume.

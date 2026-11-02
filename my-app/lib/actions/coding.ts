@@ -1,11 +1,10 @@
 "use server";
 
 import { generateText } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
-const openai = createOpenAI({
-    baseURL: "https://openrouter.ai/api/v1",
-    apiKey: process.env.OPENAI_API_KEY,
+const google = createGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 });
 
 export async function generateCodingChallenge(role: string, industry: string, company: string) {
@@ -28,7 +27,7 @@ No markdown tags like \`\`\`json, just output the raw JSON object. Make sure the
 
     try {
         const { text } = await generateText({
-            model: openai("openai/gpt-4o-mini"),
+            model: google("gemini-2.5-flash"),
             system: "You are an expert technical interviewer.",
             prompt,
         });

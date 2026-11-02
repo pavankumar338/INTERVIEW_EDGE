@@ -30,7 +30,7 @@ export default function Home() {
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]">
               SP
             </div>
-            <span className="font-bold tracking-tight text-xl">Speed<span className="text-blue-500">Prep AI</span></span>
+            <span className="font-bold tracking-tight text-xl">Interview<span className="text-blue-500">AI</span></span>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm font-medium">
             <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
@@ -66,7 +66,7 @@ export default function Home() {
             Stop Guessing. Start Preparing for <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-500">Specific Companies.</span>
           </h1>
           <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mb-12 leading-relaxed">
-            Generic question sets are a waste of time. SpeedPrep AI analyzes company-specific interview patterns, historical question trends, and role requirements to generate highly targeted quizzes and simulations tailored to your exact skill level.
+            Generic question sets are a waste of time. Interview-AI analyzes company-specific interview patterns, historical question trends, and role requirements to generate highly targeted quizzes and simulations tailored to your exact skill level.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 animate-fade-in" style={{ animationDelay: '0.2s' }}>
@@ -124,12 +124,12 @@ export default function Home() {
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight">Trusted by Candidates</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              See what engineers are saying about their focused interview preparation with SpeedPrep AI.
+              See what engineers are saying about their focused interview preparation with Interview-AI.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { name: "Sarah Johnson", role: "L4 Engineer at Google", text: "SpeedPrep analyzed the exact patterns for Google's engineering loops. I felt over-prepared for the actual system design interview!" },
+              { name: "Sarah Johnson", role: "L4 Engineer at Google", text: "Interview-AI analyzed the exact patterns for Google's engineering loops. I felt over-prepared for the actual system design interview!" },
               { name: "Michael Chen", role: "Frontend Dev at Meta", text: "I stopped wasting time on generic React questions. The adaptive quizzes helped me bridge my specific knowledge gaps." },
               { name: "Elena Rodriguez", role: "Junior SDE", text: "Tracking my progress over time gave me the confidence I needed. The company-specific role simulation is a game-changer." }
             ].map((t, i) => (
@@ -153,11 +153,11 @@ export default function Home() {
         <section id="faq" className="max-w-3xl mx-auto mb-32 scroll-mt-24">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight">FAQs</h2>
-            <p className="text-muted-foreground">Everything you need to know about SpeedPrep AI.</p>
+            <p className="text-muted-foreground">Everything you need to know about Interview-AI.</p>
           </div>
           <div className="space-y-4">
             {[
-              { q: "How does SpeedPrep AI generate company-specific questions?", a: "By analyzing data from historical technical interviews, public company engineering blogs, and role requirements across top organizations, our ML engine maps out definitive topic patterns." },
+              { q: "How does Interview-AI generate company-specific questions?", a: "By analyzing data from historical technical interviews, public company engineering blogs, and role requirements across top organizations, our ML engine maps out definitive topic patterns." },
               { q: "Will the difficulty match my actual experience level?", a: "Yes. Whether you're a Fresher or a Senior Engineer, the platform asks you for your experience level and automatically adapts the depth of system design, architecture, and coding questions." },
               { q: "Can I track my progress over time?", a: "Absolutely. Our platform keeps a detailed history of your mock interviews and quizzes, highlighting your evolving strengths and areas that need immediate attention." }
             ].map((item, i) => (
@@ -209,7 +209,7 @@ export default function Home() {
                 <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]">
                   SP
                 </div>
-                <span className="font-bold tracking-tighter text-2xl uppercase">Speed<span className="text-blue-500">Prep AI</span></span>
+                <span className="font-bold tracking-tighter text-2xl uppercase">Interview<span className="text-blue-500">AI</span></span>
               </Link>
               <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
                 We're on a mission to bring data-driven efficiency to technical interview preparation, helping candidates crack company-specific patterns and land their dream jobs.
@@ -254,7 +254,7 @@ export default function Home() {
 
           <div className="pt-12 border-t border-border flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-6 text-sm text-muted-foreground font-medium">
-              <span>© 2024 SpeedPrep AI.</span>
+              <span>© 2024 Interview-AI.</span>
               <div className="flex items-center gap-6">
                 <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
                 <a href="#" className="hover:text-foreground transition-colors">Terms</a>

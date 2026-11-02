@@ -179,7 +179,7 @@ function StudyPathTab() {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between ml-1">
                                 <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Key Topics</label>
-                                <button 
+                                <button
                                     type="button"
                                     onClick={async () => {
                                         if (!role) {
@@ -195,7 +195,7 @@ function StudyPathTab() {
                                             });
                                             // This is just a placeholder logic to show how I'd approach it
                                             setTopics(`Advanced ${role} concepts, System Design, Scalability, Performance Optimization`);
-                                        } catch (e) {} finally { setLoading(false); }
+                                        } catch (e) { } finally { setLoading(false); }
                                     }}
                                     className="text-[10px] font-bold text-blue-500 hover:text-blue-400 uppercase tracking-widest"
                                 >
@@ -269,7 +269,7 @@ function StudyPathTab() {
                             <div key={module.day} className="relative pl-12 pb-12 last:pb-0 group">
                                 {/* Timeline Line */}
                                 <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border group-last:bg-transparent" />
-                                
+
                                 {/* Day Circle */}
                                 <div className="absolute left-0 top-0 w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-600/30 z-10 transition-transform group-hover:scale-110">
                                     {module.day}
@@ -283,7 +283,7 @@ function StudyPathTab() {
                                         </h3>
                                     </div>
                                     <p className="text-muted-foreground leading-relaxed mb-8">{module.description}</p>
-                                    
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div className="space-y-4">
                                             <h4 className="text-sm font-bold text-blue-500 uppercase tracking-widest flex items-center gap-2">
@@ -306,10 +306,10 @@ function StudyPathTab() {
                                             </h4>
                                             <div className="space-y-3">
                                                 {module.resources.map((res: any, i: number) => (
-                                                    <a 
-                                                        key={i} 
-                                                        href={res.url} 
-                                                        target="_blank" 
+                                                    <a
+                                                        key={i}
+                                                        href={res.url}
+                                                        target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="block p-4 rounded-2xl bg-secondary/30 border border-border hover:bg-secondary/50 hover:border-blue-500/30 transition-all group/res"
                                                     >
@@ -355,11 +355,11 @@ function GenerateQuestionsTab({ activeResume }: { activeResume: any }) {
             const res = await fetch("/api/generate-questions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    company, 
-                    role, 
+                body: JSON.stringify({
+                    company,
+                    role,
                     experience,
-                    resumeContent: useResume ? activeResume?.extracted_text : null 
+                    resumeContent: useResume ? activeResume?.extracted_text : null
                 }),
             });
 
@@ -540,7 +540,7 @@ export default function DashboardPage() {
                         <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]">
 
                         </div>
-                        <span className="font-bold tracking-tighter text-2xl">Speed<span className="text-blue-500">Prep</span></span>
+                        <span className="font-bold tracking-tighter text-2xl">Interview AI<span className="text-blue-500"></span></span>
                     </Link>
                 </div>
 
@@ -1022,7 +1022,7 @@ export default function DashboardPage() {
                                         <h3 className="text-xl font-bold">No Resume Found</h3>
                                         <p className="text-muted-foreground">Please upload your resume first to get a detailed analysis and score.</p>
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={() => setView('overview')}
                                         className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all"
                                     >
